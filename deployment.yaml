@@ -1,0 +1,20 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cloudopslab-deployment
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: cloudopslab
+  template:
+    metadata:
+      labels:
+        app: cloudopslab
+    spec:
+      containers:
+      - name: cloudopslab
+        image: cloudopslab:latest
+        imagePullPolicy: Never
+        ports:
+        - containerPort: 8080

@@ -1,20 +1,33 @@
 package main
 
 import (
-  "log"
-  "net/http"
+	"net/http"
+	"os"
+	"strings"
 )
 
 func main() {
-  // Servir archivos estáticos: /static/...
-  fs := http.FileServer(http.Dir("static"))
-  http.Handle("/static/", http.StripPrefix("/static/", fs))
+	fs := http.FileServer(http.Dir("static"))
+	http.Handle("/static/", http.StripPrefix("/static/", fs))
 
-  // Página principal: devuelve el HTML
-  http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-    http.ServeFile(w, r, "static/index.html")
-  })
+	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		data, err := os.ReadFile("static/index.html")
+		if err != nil {
+			http.Error(w, "No se pudo leer index.html", http.StatusInternalServerError)
+			return
+		}
 
-  log.Println("Servidor iniciado en http://localhost:8080")
-  http.ListenAndServe(":8080", nil)
+		hostname, err := os.Hostname()
+		if err != nil {
+			hostname = "desconocido"
+		}
+
+		html := string(data)
+		html = strings.ReplaceAll(html, "POD_PLACEHOLDER", "Pod: "+hostname)
+
+		w.Header().Set("Content-Type", "text/html; charset=utf-8")
+		w.Write([]byte(html))
+	})
+
+	http.ListenAndServe(":8080", nil)
 }
